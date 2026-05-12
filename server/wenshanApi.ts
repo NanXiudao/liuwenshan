@@ -55,7 +55,13 @@ async function buildZhihuContext(question: string, env: Env): Promise<ZhihuConte
   const errors: string[] = []
   const zhihuItems = await safeList(() => zhihuSearch(question, env), errors, '知乎搜索')
   const globalItems = await safeList(() => globalSearch(question, env), errors, '全网搜索')
-  const directAnswer = await generateDirectAnswer(question, zhihuItems, env)
+  let directAnswer: { provider: string; content: string }
+  try {
+    directAnswer = await generateDirectAnswer(question, zhihuItems, env)
+  } catch (error) {
+    errors.push(`直答测试：${error instanceof Error ? error.message : String(error)}`)
+    directAnswer = { provider: 'fallback', content: '' }
+  }
   const similar = zhihuItems.slice(0, 6).map((item) => toSimilarQuestion(item, 'zhihu_search'))
   const globalRefs = globalItems.slice(0, 4).map((item) => toSimilarQuestion(item, 'global_search'))
 

@@ -74,7 +74,9 @@ async function startAnalysis() {
     startStatusLoop([
       '正在拆解问题里的隐藏前提……',
       '正在识别模糊概念……',
+      '正在让大模型转动它的齿轮……',
       '正在生成更值得回答的问题……',
+      '大模型正在冥思苦想，稍等……',
       '正在检查知乎语境适配度……',
       '正在准备圈子发布内容……',
     ])
@@ -189,6 +191,23 @@ function scoreEntries(item: RewrittenQuestion) {
   ] as const
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, '')        // 代码块
+    .replace(/`([^`]+)`/g, '$1')           // 行内代码
+    .replace(/!\[.*?\]\(.*?\)/g, '')       // 图片
+    .replace(/\[([^\]]*)\]\(.*?\)/g, '$1') // 链接
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')    // 加粗
+    .replace(/(\*|_)(.*?)\1/g, '$2')       // 斜体
+    .replace(/~~(.*?)~~/g, '$1')           // 删除线
+    .replace(/#+\s/g, '')                  // 标题标记
+    .replace(/>\s/g, '')                   // 引用标记
+    .replace(/[-*+]\s/g, '')               // 无序列表标记
+    .replace(/\d+\.\s/g, '')               // 有序列表标记
+    .replace(/\n{3,}/g, '\n\n')            // 多余空行
+    .trim()
+}
+
 onBeforeUnmount(() => {
   stopStatusLoop()
 })
@@ -206,7 +225,7 @@ onBeforeUnmount(() => {
           <span class="mode-badge">{{ modeText }}</span>
         </div>
         <p class="subtitle">这个时代不缺答案，缺少好问题。</p>
-        <p class="description">一点分析，万般好回答。</p>
+        <p class="description">刘问山，问出好问题</p>
       </div>
 
       <textarea
@@ -244,10 +263,11 @@ onBeforeUnmount(() => {
       <header class="result-header">
         <div>
           <h2>分析结果</h2>
-          <p>{{ stage }}</p>
+          <p :class="{ 'status-busy': busy }">{{ stage }}</p>
+          <small v-if="busy" class="status-hint">刘问山正在思考，不要急，分析好了会自动展示更好的问题</small>
         </div>
         <div class="stage-strip">
-          <span v-for="item in completedStages" :key="item">{{ item }}</span>
+          <span v-for="item in completedStages" :key="item" class="stage-badge done">{{ item }}</span>
         </div>
         <button class="mobile-close" aria-label="关闭结果页" @click="mobileResultsOpen = false">×</button>
       </header>
@@ -275,12 +295,14 @@ onBeforeUnmount(() => {
               <p>{{ result.diagnosis.summary }}</p>
             </article>
             <article class="info-card">
-              <h3>问题类型标签</h3>
-              <p>{{ result.diagnosis.problem_types.join('、') }}</p>
+              <h3>问题类型</h3>
+              <div class="diagnosis-meta">
+                <span v-for="pt in result.diagnosis.problem_types" :key="pt" class="diagnosis-tag">{{ pt }}</span>
+              </div>
             </article>
             <article class="info-card">
               <h3>严重程度</h3>
-              <p>{{ result.diagnosis.severity }}</p>
+              <span class="severity-badge" :class="result.diagnosis.severity">{{ result.diagnosis.severity === 'high' ? '高' : result.diagnosis.severity === 'medium' ? '中' : '低' }}</span>
             </article>
             <article class="info-card">
               <h3>一句话结论</h3>
@@ -389,7 +411,7 @@ onBeforeUnmount(() => {
             </article>
             <article class="info-card">
               <h3>直答内容</h3>
-              <p class="preserve">{{ zhihuContext.direct_answer || '未生成直答内容。' }}</p>
+              <p class="preserve">{{ stripMarkdown(zhihuContext.direct_answer || '未生成直答内容。') }}</p>
             </article>
             <article class="info-card">
               <h3>用途</h3>

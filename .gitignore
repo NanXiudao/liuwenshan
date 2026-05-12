@@ -19,8 +19,7 @@ dist-ssr
 *.local
 
 # Editor
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 .DS_Store
 *.suo
@@ -32,5 +31,5 @@ dist-ssr
 # Claude
 .claude/
 
-# PM2
-ecosystem.config.cjs
+# PM2 logs
+logs/
