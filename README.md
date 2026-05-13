@@ -47,14 +47,15 @@ npm run build
 
 ### 生产部署（Nginx + Node 后端）
 
+**前置条件：** 服务器已安装 Node.js 18+、Nginx、PM2（`npm i -g pm2`），已配置好 `.env` 中的 API Key。
+
 将项目部署到服务器 `/var/www/wenshan/`：
 
 ```bash
-# 1. 上传所有文件到服务器
-scp -r dist/*    root@<服务器IP>:/var/www/wenshan/dist/
-scp -r server/   root@<服务器IP>:/var/www/wenshan/
-scp -r deploy/   root@<服务器IP>:/var/www/wenshan/
-scp package.json root@<服务器IP>:/var/www/wenshan/
+# 1. 上传文件到服务器（假设目录 /var/www/wenshan）
+scp -r dist/*             root@<服务器IP>:/var/www/wenshan/dist/
+scp -r server/ deploy/    root@<服务器IP>:/var/www/wenshan/
+scp package.json package-lock.json .env.example root@<服务器IP>:/var/www/wenshan/
 
 # 2. 服务器上安装依赖
 ssh root@<服务器IP>
