@@ -1,7 +1,13 @@
 import { createHmac, randomUUID } from 'node:crypto'
+import { appendFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createMockAnalysis, createMockZhihuContext } from './mockData'
 import type { QuestionAnalysisResult, SimilarQuestion, ZhihuContext } from './apiTypes'
+
+function logError(msg: string) {
+  const line = `[${new Date().toISOString()}] ${msg}\n`
+  try { appendFileSync('wenshan-err.log', line) } catch {}
+}
 
 type Env = Record<string, string>
 
@@ -207,7 +213,11 @@ async function callChat(
       ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
     }),
   })
-  if (!response.ok) throw new Error(`DeepSeek HTTP ${response.status}`)
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    logError(`DeepSeek HTTP ${response.status} ${response.url} body=${body.slice(0, 500)}`)
+    throw new Error(`DeepSeek HTTP ${response.status}`)
+  }
   const data = (await response.json()) as {
     choices?: { message?: { content?: string } }[]
   }

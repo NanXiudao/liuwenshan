@@ -390,6 +390,8 @@ ul {
   padding: 20px 28px 32px;
   background: var(--color-bg);
   scrollbar-width: thin;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stack {
@@ -450,6 +452,8 @@ ul {
   display: grid;
   gap: 8px;
   transition: box-shadow 0.2s;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .info-card:hover {
@@ -489,6 +493,8 @@ ul {
   display: grid;
   gap: 10px;
   transition: box-shadow 0.2s;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .rewrite-card:hover {
