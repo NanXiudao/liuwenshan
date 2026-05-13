@@ -50,10 +50,11 @@ npm run build
 将项目部署到服务器 `/var/www/wenshan/`：
 
 ```bash
-# 1. 上传构建产物和后端
-scp -r dist/*   root@<服务器IP>:/var/www/wenshan/dist/
-scp server/*    root@<服务器IP>:/var/www/wenshan/server/
-scp package.json ecosystem.config.cjs root@<服务器IP>:/var/www/wenshan/
+# 1. 上传所有文件到服务器
+scp -r dist/*    root@<服务器IP>:/var/www/wenshan/dist/
+scp -r server/   root@<服务器IP>:/var/www/wenshan/
+scp -r deploy/   root@<服务器IP>:/var/www/wenshan/
+scp package.json root@<服务器IP>:/var/www/wenshan/
 
 # 2. 服务器上安装依赖
 ssh root@<服务器IP>
@@ -71,7 +72,7 @@ nginx -t
 systemctl reload nginx
 
 # 5. 启动后端（PM2 守护）
-pm2 start ecosystem.config.cjs
+pm2 start deploy/ecosystem.config.cjs
 pm2 save
 pm2 startup   # 开机自启
 ```
