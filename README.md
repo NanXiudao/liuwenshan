@@ -37,13 +37,48 @@ npm run dev
 
 ## 构建部署
 
+### 构建
+
 ```bash
 npm run build
 ```
 
-构建产物在 `dist/`。纯静态部署时接口不可用会自动使用演示数据；要真实调用 AI 和知乎接口，需配置环境变量并将 `server/` 部署为同源后端。
+构建产物在 `dist/`。
 
-生产部署参考 `deploy/` 目录下的 Nginx + PM2 配置。
+### 生产部署（Nginx + Node 后端）
+
+将项目部署到服务器 `/var/www/wenshan/`：
+
+```bash
+# 1. 上传构建产物和后端
+scp -r dist/*   root@<服务器IP>:/var/www/wenshan/dist/
+scp server/*    root@<服务器IP>:/var/www/wenshan/server/
+scp package.json ecosystem.config.cjs root@<服务器IP>:/var/www/wenshan/
+
+# 2. 服务器上安装依赖
+ssh root@<服务器IP>
+cd /var/www/wenshan
+npm install --omit=dev
+
+# 3. 配置环境变量
+cp .env.example .env
+nano .env   # 填入 DEEPSEEK_API_KEY、ZHIHU_API_KEY 等
+
+# 4. 配置 Nginx
+cp deploy/nginx-wenshan.conf /etc/nginx/sites-available/wenshan
+ln -sf /etc/nginx/sites-available/wenshan /etc/nginx/sites-enabled/
+nginx -t
+systemctl reload nginx
+
+# 5. 启动后端（PM2 守护）
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup   # 开机自启
+```
+
+访问 `http://<服务器IP>` 即可。
+
+> **纯静态部署**：如果只上传 `dist/`、不启动后端，页面正常展示但 API 调用会降级到演示数据。
 
 ## 环境变量
 
